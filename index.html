@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Upload</title>
+    <script>
+        function convertToBase64() {
+            console.log("fun called");
+            var fileInput = document.getElementById('real');
+            console.log("fun called2");
+            var file = fileInput.files[0];
+            console.log("fun called3");
+            var reader = new FileReader();
+            console.log("fun called4");
+
+            reader.onloadend = function() {
+                console.log("fun called5");
+                var base64Image = reader.result;
+                document.getElementById('image').value = base64Image;
+            }
+            console.log("fun called6");
+            reader.readAsDataURL(file);
+        }
+
+        function handleImageSelect(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+      const base64Image = e.target.result;
+        console.log("updated")
+      document.getElementById('image').value = base64Image;
+      const ele = document.getElementById("selected_image");
+      ele.innerHTML = "<img src=\"" + base64Image + "\" width=20%>  "
+      
+    };
+
+    reader.onerror = function(e) {
+      console.error('Error occurred while reading the file:', e.target.error);
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+    </script>
+     <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>VisualQuest</h1>
+    <div class="topnav">
+        <a class="active" href="#index">Index</a>
+        <a href="search.html">Search</a>
+        <div class="topnav-right">
+          <a href="#search">About</a>
+          
+        </div>
+      </div>
+
+      <br>
+    </div>
+    <iframe name="dummyframe" id="dummyframe" style="display: none;"></iframe>
+    <div id="imageuploaddiv">
+
+        <form action="<API Gateway>" method="post"  id="fileuploadform" target="#">
+            
+         <input type="file" id="real" name="real" accept="image/*" required="true" onchange="handleImageSelect(event)"><br><br>
+            
+            
+             <input id="indexInput2" type="text" id="index" name="index" placeholder="Index name" required="true"><br><br>
+            
+            <input type="hidden" id="image" name="image" value="">
+            <input type="submit" value="Upload">
+        </form>
+
+    </div>
+
+    <div id="selected_image">
+        
+    </div>
+</body>
+</html>

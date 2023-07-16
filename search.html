@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <title>VisualQuest</title>
+</head>
+<body>
+    <h1>VisualQuest</h1>
+    <div class="topnav">
+        <a  href="index.html">Index</a>
+        <a  class="active" href="#">Search</a>
+        <div class="topnav-right">
+          <a href="#search">About</a>
+          
+        </div>
+      </div>
+
+      <br>
+    <div id="searchbar">
+        <form id="searchForm">
+            <input type="text" id="searchInput" placeholder="Enter your search keywords" required="true">
+            <input type="text" id="indexInput" placeholder="Index name" required="true">
+            <button type="submit">Search</button>
+        </form>
+        
+    </div>
+
+    <div id="results_container">
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('searchForm');
+        const input = document.getElementById('searchInput');
+        const indexName =  document.getElementById('indexInput');
+        const resultsDiv = document.getElementById('results');
+
+        form.addEventListener('submit', (e) => {
+            resultsDiv.innerHTML = "<div class=\"loader\"></div>"
+            e.preventDefault();
+            const query = input.value;
+            if (query.trim() === '') {
+                alert('Please enter a search query');
+                return;
+            }
+            search(query, indexName.value);
+        });
+
+        function search(query, indexname) {
+            const endpointUrl = '<Opensearch Endpoint>' +  indexname + '/_search?pretty'; // Replace with your actual API endpoint URL
+            const username = '<username>'; // Replace with your actual username
+            const password = '<password>'; // Replace with your actual password
+            const url = new URL(endpointUrl);
+            url.searchParams.append('q', query);
+
+            fetch(url,{
+                    headers: {
+                        'Authorization': 'Basic ' + btoa(username + ':' + password)
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    displayResults(data);
+                })
+                .catch(error => {
+                });
+        }
+
+        function displayResults(data) {
+            resultsDiv.innerHTML = '';
+            // Clear previous results
+            console.log(data);
+            if(data.hasOwnProperty('error')){
+                resultsDiv.innerHTML = '<p id="message" >' + data.error.reason + '</p>';
+                return;
+
+            }
+            
+
+            if (data.hits.hits.length === 0) {
+                console.log("No results")
+                resultsDiv.innerHTML = '<p id="message" >No results found.</p>';
+                return;
+            }
+            console.log(data.hits.hits)
+
+            const ul = document.createElement('ul');
+
+            // Iterate over the results and create list items to display them
+            data.hits.hits.forEach(result => {
+                console.log("found")
+                console.log(result._source)
+
+                var output = ""
+                var tagcount = 0;
+
+                if(result._source.Labels.length === 0 ){
+                    console.log("no lables found")
+                }else{
+                     result._source.Labels.forEach(label =>{
+                        if(tagcount<15){
+                            tagsHTML = `<div class="tag">
+                                 <span class="tag__keyword">${label.Name}</span>
+                                   <span class="tag__number">${label.Confidence.toFixed()}%</span>
+                                      </div>`;
+
+                        output = output  + tagsHTML + " "
+                        tagcount++;
+                        }
+                        
+                     })  
+                }
+
+                output += "<br>" 
+
+
+                if(result._source.TextDetections.length === 0 ){
+                    console.log("no lables found")
+                }else{
+  
+
+                  result._source.TextDetections.forEach((text, index) => {
+            if (tagcount < 15) {
+                const tagsHTML = `<div class="detected_text">${text.DetectedText}</div>`;
+                output = output + tagsHTML + " ";
+                tagcount++;
+            }
+            });
+                    
+                }
+
+                if(result._source.FaceDetails.length === 0 ){
+                    console.log("no face found")
+                }
+
+                const mydiv = document.createElement('div');
+                dataa = "<div class=\"single_result\">  <div class=\"result_image\"> <img id=\"image\" src=\""+  result._source.image_start +","+ result._source.image_blob + "\" alt=\"Base64 Image\" height=\"150px\" > </div>  "
+                dataa = dataa +  "<div class=\"result_metadata\"> " +   output + "</div>   </div>"
+                mydiv.innerHTML = dataa
+                
+                ul.appendChild(mydiv);
+            });
+
+            resultsDiv.appendChild(ul);
+        }
+    </script>
+</body>
+</html>
